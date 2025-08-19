@@ -154,7 +154,7 @@ class immsim:
                 self.npr_sim.loc[t,a] -= npr_exits[a]
                 self.npr_sim.loc[t,a] -= npr_accepted_pr[a]
                 self.npr_sim.loc[t,a] += npr_entries[a]
-                self.pop_sim.loc[t,a] = self.pop_sim.loc[t,a] + npr_entries[a] + npr_accepted_pr[a] - npr_exits[a]
+                self.pop_sim.loc[t,a] = self.pop_sim.loc[t,a] + npr_entries[a] - npr_exits[a] # + npr_accepted_pr[a] 
             # permanent immigration (from NPR and remaining from abroad)
             immig_space = max(self.pr_entry_cap - npr_accepted_pr.sum(),0)
             if immig_space > 0:
