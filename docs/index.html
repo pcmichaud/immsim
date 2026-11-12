@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulateur immsim</title>
+<meta name="description" content="Simulateur des scénarios d'immigration au Québec : effectif des résidents non permanents, population, PIB par habitant et poids du Québec selon les leviers choisis.">
+<style>
+:root {
+  --bg: #f7f6f2; --surface: #ffffff; --ink: #1d232b; --ink-2: #4a5360; --muted: #79818c; --line: #e2e0d8;
+  --accent: #1f5fa8; --accent-soft: #e6eef8; --ref: #8a8f98; --isq: #b5452f; --grid: #ecebe5;
+  --radius: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14171b; --surface: #1c2026; --ink: #e8eaed; --ink-2: #b9bfc8; --muted: #8b939e; --line: #2c323a;
+    --accent: #6fa8e8; --accent-soft: #23303f; --ref: #8d939c; --isq: #e2826d; --grid: #262b32;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14171b; --surface: #1c2026; --ink: #e8eaed; --ink-2: #b9bfc8; --muted: #8b939e; --line: #2c323a;
+  --accent: #6fa8e8; --accent-soft: #23303f; --ref: #8d939c; --isq: #e2826d; --grid: #262b32;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 "Source Sans 3", "Segoe UI", system-ui, -apple-system, sans-serif; }
+header { padding: 28px 16px 8px; max-width: 1240px; margin: 0 auto; }
+h1 { font-size: 1.6rem; margin: 0 0 4px; font-weight: 650; letter-spacing: -0.01em; }
+header p { margin: 0; color: var(--ink-2); max-width: 820px; }
+main { max-width: 1240px; margin: 0 auto; padding: 12px 16px 40px; display: grid; grid-template-columns: 330px 1fr; gap: 20px; align-items: start; }
+@media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; }
+aside.panel { position: sticky; top: 12px; }
+@media (max-width: 900px) { aside.panel { position: static; } }
+h2 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 18px 0 8px; font-weight: 650; }
+h2:first-child { margin-top: 0; }
+.presets { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.presets button { font: inherit; font-size: 0.85rem; padding: 7px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); cursor: pointer; text-align: left; line-height: 1.25; }
+.presets button:hover { border-color: var(--accent); }
+.presets button.on { background: var(--accent-soft); border-color: var(--accent); }
+.ctl { margin: 10px 0 12px; }
+.ctl label { display: flex; justify-content: space-between; gap: 8px; font-size: 0.9rem; }
+.ctl label output { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+.ctl small { display: block; color: var(--muted); font-size: 0.78rem; line-height: 1.3; margin-top: 2px; }
+input[type=range] { width: 100%; accent-color: var(--accent); margin: 4px 0 0; }
+.tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+@media (max-width: 600px) { .tiles { grid-template-columns: 1fr 1fr; } }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; }
+.tile .k { font-size: 0.78rem; color: var(--muted); line-height: 1.25; }
+.tile .v { font-size: 1.35rem; font-weight: 650; font-variant-numeric: tabular-nums; }
+.tile .d { font-size: 0.8rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.charts { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 700px) { .charts { grid-template-columns: 1fr; } }
+.chart h3 { font-size: 0.95rem; margin: 0 0 2px; font-weight: 650; }
+.chart p { margin: 0 0 6px; font-size: 0.8rem; color: var(--muted); }
+.chart .box { position: relative; height: 240px; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 0.85rem; color: var(--ink-2); margin: 0 0 12px; }
+.legend span::before { content: ""; display: inline-block; width: 22px; height: 0; border-top: 2.5px solid var(--c); vertical-align: middle; margin-right: 6px; }
+.legend span.dash::before { border-top-style: dashed; }
+.notes { font-size: 0.85rem; color: var(--ink-2); margin-top: 18px; }
+.notes p { margin: 6px 0; }
+details { margin-top: 14px; font-size: 0.85rem; }
+summary { cursor: pointer; color: var(--accent); }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; margin-top: 8px; }
+th, td { padding: 4px 6px; border-bottom: 1px solid var(--line); text-align: right; }
+th:first-child, td:first-child { text-align: left; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.actions button, .actions a { font: inherit; font-size: 0.85rem; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; text-decoration: none; }
+a { color: var(--accent); }
+#test { white-space: pre-wrap; font: 12px/1.4 ui-monospace, monospace; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Simulateur des scénarios d'immigration au Québec</h1>
+  <p>Déplacez les leviers pour voir l'effet sur le nombre de résidents non permanents (RNP), la population, le PIB par habitant et le poids du Québec dans le Canada. Modèle immsim2026, utilisé dans le rapport <em>Atterrir en douceur</em> (Chaire de recherche Jacques-Parizeau en politiques économiques, HEC Montréal, novembre 2026).</p>
+</header>
+<main>
+  <aside class="panel" aria-label="Leviers">
+    <h2>Scénarios du rapport</h2>
+    <div class="presets" id="presets">
+      <button data-p="cible35">35 000 : cible du gouvernement</button>
+      <button data-p="cible35v">35 000, intégration deux fois plus rapide</button>
+      <button data-p="plan45">45 000 : plan 2026-2029</button>
+      <button data-p="transition">Transition : 70 000, puis 50 000</button>
+    </div>
+
+    <h2>Admissions permanentes</h2>
+    <div class="ctl"><label for="rp0">Niveau en 2027 <output id="o-rp0"></output></label>
+      <input type="range" id="rp0" min="30000" max="80000" step="2500"></div>
+    <div class="ctl"><label for="rp1">Niveau de long terme <output id="o-rp1"></output></label>
+      <input type="range" id="rp1" min="30000" max="70000" step="2500"></div>
+    <div class="ctl"><label for="an1">Atteint en <output id="o-an1"></output></label>
+      <input type="range" id="an1" min="2028" max="2040" step="1">
+      <small>Passage linéaire du niveau de 2027 au niveau de long terme.</small></div>
+    <div class="ctl"><label for="etr">Dont admissions de l'étranger <output id="o-etr"></output></label>
+      <input type="range" id="etr" min="10000" max="30000" step="250">
+      <small>Le reste est comblé par des résidents temporaires déjà au Québec.</small></div>
+
+    <h2>Entrées de résidents temporaires</h2>
+    <div class="ctl"><label for="q">Travailleurs du PTET et étudiants (Québec) <output id="o-q"></output></label>
+      <input type="range" id="q" min="-80" max="30" step="5">
+      <small>Variation par rapport aux entrées de 2025. Plafonds du plan québécois : −10 %.</small></div>
+    <div class="ctl"><label for="pmi">Mobilité internationale (Ottawa) <output id="o-pmi"></output></label>
+      <input type="range" id="pmi" min="-80" max="30" step="5">
+      <small>Variation par rapport aux entrées de 2025.</small></div>
+    <div class="ctl"><label for="asile">Demandes d'asile par année <output id="o-asile"></output></label>
+      <input type="range" id="asile" min="5000" max="40000" step="1000">
+      <small>Environ 34 800 en 2025 ; environ 15 000 au rythme de 2026.</small></div>
+
+    <h2>Comportements</h2>
+    <div class="ctl"><label for="kappa">Départs du Québec <output id="o-kappa"></output></label>
+      <input type="range" id="kappa" min="0.5" max="2.5" step="0.1">
+      <small>Multiplie les risques de départ observés en 2025.</small></div>
+    <div class="ctl"><label for="vitesse">Vitesse d'intégration en emploi <output id="o-vitesse"></output></label>
+      <input type="range" id="vitesse" min="1" max="2" step="0.1">
+      <small>×2 : les immigrants rejoignent les natifs deux fois plus vite (introduit de 2027 à 2031).</small></div>
+  </aside>
+
+  <section aria-label="Résultats">
+    <div class="tiles" id="tiles"></div>
+    <div class="legend">
+      <span style="--c: var(--accent)">Votre scénario</span>
+      <span class="dash" style="--c: var(--ref)">Plan 45 000 (référence)</span>
+      <span class="dash" style="--c: var(--isq)">Projection de l'ISQ en 2019</span>
+    </div>
+    <div class="charts">
+      <div class="panel chart"><h3>Effectif des résidents non permanents</h3><p>Milliers, au 1er juillet</p><div class="box"><canvas id="c-rnp" role="img" aria-label="Effectif des RNP"></canvas></div></div>
+      <div class="panel chart"><h3>Population du Québec</h3><p>Millions, au 1er juillet</p><div class="box"><canvas id="c-pop" role="img" aria-label="Population"></canvas></div></div>
+      <div class="panel chart"><h3>Effet de composition sur le PIB par habitant</h3><p>Écart cumulé depuis 2026, en %</p><div class="box"><canvas id="c-pib" role="img" aria-label="PIB par habitant"></canvas></div></div>
+      <div class="panel chart"><h3>Poids du Québec dans le Canada</h3><p>% de la population canadienne (projection moyenne de Statistique Canada)</p><div class="box"><canvas id="c-part" role="img" aria-label="Poids du Québec"></canvas></div></div>
+    </div>
+    <div class="actions">
+      <button id="csv">Télécharger les résultats (CSV)</button>
+      <a href="https://github.com/pcmichaud/immsim/tree/v2026">Code source du modèle</a>
+    </div>
+    <details><summary>Voir les données pour quelques années</summary><div id="table"></div></details>
+    <div class="notes">
+      <p><strong>À lire avant d'interpréter.</strong> Il s'agit de projections mécaniques et non de prévisions : les comportements observés en 2025 (départs du Québec, passages à la résidence permanente) sont tenus constants, et les flux fédéraux sont fixés par les leviers. Les entrées de résidents temporaires sont constantes après 2026. Les profils d'intégration des étudiants et des demandeurs d'asile sont des hypothèses. L'effet sur le PIB par habitant ne tient compte que de la structure par âge et du rattrapage des immigrants ; la productivité des natifs est tenue constante. La méthode est décrite à l'annexe A du rapport.</p>
+      <p>Pierre-Carl Michaud, HEC Montréal. Sources : Statistique Canada, Institut de la statistique du Québec, IRCC, MIFI ; calculs de l'auteur.</p>
+    </div>
+    <div id="test"></div>
+  </section>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="immsim.js"></script>
+<script>
+'use strict';
+const PRESETS = {
+  cible35:    { rp0: 35000, rp1: 35000, an1: 2028, etr: 12000, vitesse: 1 },
+  cible35v:   { rp0: 35000, rp1: 35000, an1: 2028, etr: 12000, vitesse: 2 },
+  plan45:     { rp0: 45000, rp1: 45000, an1: 2028, etr: 15750, vitesse: 1 },
+  transition: { rp0: 70000, rp1: 50000, an1: 2035, etr: 20000, vitesse: 1 },
+};
+const DEFAUTS = { q: -10, pmi: 0, asile: 15000, kappa: 1 };
+const nf = new Intl.NumberFormat('fr-CA', { maximumFractionDigits: 0 });
+const f1 = new Intl.NumberFormat('fr-CA', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const f2 = new Intl.NumberFormat('fr-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const $ = id => document.getElementById(id);
+const IDS = ['rp0', 'rp1', 'an1', 'etr', 'q', 'pmi', 'asile', 'kappa', 'vitesse'];
+const FMT = {
+  rp0: v => nf.format(v), rp1: v => nf.format(v), an1: v => v, etr: v => nf.format(v),
+  q: v => (v > 0 ? '+' : '') + v + ' %', pmi: v => (v > 0 ? '+' : '') + v + ' %', asile: v => nf.format(v),
+  kappa: v => '×' + f1.format(v), vitesse: v => '×' + f1.format(v),
+};
+let I, ref, charts = {}, last;
+
+function entrees(v) {
+  const e = I.entrees_2025;
+  return e.quebec * (1 + v.q / 100) + e.pmi * (1 + v.pmi / 100) + v.asile * I.echelle_asile;
+}
+function lire() { const v = {}; IDS.forEach(k => v[k] = +$(k).value); return v; }
+function params(v) { return { rp0: v.rp0, rp1: v.rp1, an1: v.an1, etr: v.etr, entrees: entrees(v), kappa: v.kappa, vitesse: v.vitesse }; }
+function regler(v) { Object.entries(v).forEach(([k, x]) => { if ($(k)) $(k).value = x; }); }
+
+function css(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+
+function serie(label, data, couleur, pointille, largeur) {
+  return { label, data, borderColor: couleur, backgroundColor: couleur, borderWidth: largeur || 2,
+           borderDash: pointille ? [6, 4] : [], pointRadius: 0, pointHoverRadius: 4, tension: 0, spanGaps: true };
+}
+
+function creerGraphique(id, fmt) {
+  const grid = css('--grid'), muted = css('--muted');
+  return new Chart($(id), {
+    type: 'line', data: { labels: [], datasets: [] },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { display: false },
+        tooltip: { callbacks: { label: c => ` ${c.dataset.label} : ${c.parsed.y == null ? '—' : fmt(c.parsed.y)}` } } },
+      scales: {
+        x: { ticks: { color: muted, maxTicksLimit: 8, autoSkip: true }, grid: { display: false }, border: { color: grid } },
+        y: { ticks: { color: muted, callback: v => fmt(v) }, grid: { color: grid }, border: { display: false } },
+      },
+    },
+  });
+}
+
+function maj() {
+  const v = lire();
+  IDS.forEach(k => $('o-' + k).textContent = FMT[k](v[k]));
+  $('an1').disabled = v.rp0 === v.rp1;
+  const r = simuler(I, params(v));
+  last = { v, r };
+  const A = r.annees, ix = t => A.indexOf(t);
+  const isq = A.map(t => t > 2041 ? null : interpIsq(t));
+  const acc = css('--accent'), gris = css('--ref'), rouge = css('--isq');
+  const set = (ch, ds) => { ch.data.labels = A; ch.data.datasets = ds; ch.update(); };
+  set(charts.rnp, [serie('Votre scénario', r.rnp.map(x => x / 1e3), acc), serie('Plan 45 000', ref.rnp.map(x => x / 1e3), gris, true, 1.5)]);
+  set(charts.pop, [serie('Votre scénario', r.pop.map(x => x / 1e6), acc), serie('Plan 45 000', ref.pop.map(x => x / 1e6), gris, true, 1.5),
+                   serie("ISQ 2019", isq.map(x => x == null ? null : x / 1e6), rouge, true, 1.5)]);
+  set(charts.pib, [serie('Votre scénario', r.pib, acc), serie('Plan 45 000', ref.pib, gris, true, 1.5)]);
+  set(charts.part, [serie('Votre scénario', r.part, acc), serie('Plan 45 000', ref.part, gris, true, 1.5)]);
+
+  const i30 = ix(2030), i41 = ix(2041), i60 = ix(2060);
+  const tiles = [
+    ['Entrées de RNP par année', nf.format(entrees(v)), '90 111 dans les scénarios du rapport'],
+    ['RNP en 2030', nf.format(r.rnp[i30]), 'Plan 45 000 : ' + nf.format(ref.rnp[i30])],
+    ['Passages vers la RP en 2027', nf.format(r.passages[1]), 'de résidents temporaires déjà au Québec'],
+    ['Population en 2041', f2.format(r.pop[i41] / 1e6) + ' M', "Écart à l'ISQ 2019 : " + (r.pop[i41] >= interpIsq(2041) ? '+' : '−') + nf.format(Math.abs(r.pop[i41] - interpIsq(2041)))],
+    ['PIB par habitant, 2060', f1.format(r.pib[i60]) + ' %', 'Plan 45 000 : ' + f1.format(ref.pib[i60]) + ' %'],
+    ['Poids du Québec, 2060', f1.format(r.part[i60]) + ' %', '21,7 % en 2026'],
+  ];
+  $('tiles').innerHTML = tiles.map(([k, val, d]) => `<div class="tile"><div class="k">${k}</div><div class="v">${val}</div><div class="d">${d}</div></div>`).join('');
+  const ans = [2026, 2027, 2030, 2035, 2041, 2050, 2060];
+  $('table').innerHTML = '<table><thead><tr><th>Année</th><th>RNP</th><th>Population</th><th>Passages vers la RP</th><th>PIB/hab. (%)</th><th>Poids (%)</th></tr></thead><tbody>' +
+    ans.map(t => { const i = ix(t); return `<tr><td>${t}</td><td>${nf.format(r.rnp[i])}</td><td>${nf.format(r.pop[i])}</td><td>${i ? nf.format(r.passages[i]) : '—'}</td><td>${f2.format(r.pib[i])}</td><td>${r.part[i] == null ? '—' : f1.format(r.part[i])}</td></tr>`; }).join('') + '</tbody></table>';
+  document.querySelectorAll('#presets button').forEach(b => {
+    const p = PRESETS[b.dataset.p];
+    b.classList.toggle('on', Object.entries(p).every(([k, x]) => k === 'an1' && p.rp0 === p.rp1 ? true : v[k] === x) &&
+      Object.entries(DEFAUTS).every(([k, x]) => v[k] === x));
+  });
+}
+
+function interpIsq(t) {
+  const pts = Object.entries(I.isq2019).map(([a, v]) => [+a, v]).sort((a, b) => a[0] - b[0]);
+  for (let i = 0; i < pts.length - 1; i++) if (t <= pts[i + 1][0]) return pts[i][1] + (pts[i + 1][1] - pts[i][1]) * (t - pts[i][0]) / (pts[i + 1][0] - pts[i][0]);
+  return pts[pts.length - 1][1];
+}
+
+function csv() {
+  const { v, r } = last;
+  const lignes = ['# Simulateur immsim2026 - ' + Object.entries(params(v)).map(([k, x]) => k + '=' + Math.round(x * 100) / 100).join(' ; '),
+    'annee,rnp,population,passages_rp,departs_quebec,admissions_etranger,pib_habitant_ecart_pct,poids_quebec_pct'];
+  r.annees.forEach((t, i) => lignes.push([t, r.rnp[i].toFixed(0), r.pop[i].toFixed(0), r.passages[i].toFixed(0), r.departs[i].toFixed(0), r.etranger[i].toFixed(0), r.pib[i].toFixed(3), r.part[i] == null ? '' : r.part[i].toFixed(3)].join(',')));
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([lignes.join('\n')], { type: 'text/csv' }));
+  a.download = 'immsim_scenario.csv'; a.click();
+}
+
+async function tester() {
+  const R = await (await fetch('../tests/reference_web.json')).json();
+  const out = [];
+  for (const [nom, c] of Object.entries(R)) {
+    const p = Object.assign({ entrees: 90111, kappa: 1, vitesse: 1 }, c.params);
+    const r = simuler(I, p), e = c.resultats;
+    const rel = (a, b) => Math.max(...a.map((x, i) => Math.abs(x - b[i]) / Math.max(Math.abs(b[i]), 1)));
+    const abs = (a, b) => Math.max(...a.map((x, i) => Math.abs(x - b[i])));
+    out.push(`${nom.padEnd(16)} RNP écart rel. max ${rel(r.rnp, e.rnp).toExponential(2)} | pop ${rel(r.pop, e.pop).toExponential(2)} | PIB/hab (pts de %) ${abs(r.pib, e.y).toExponential(2)} | passages ${rel(r.passages.slice(1), e.passages.slice(1)).toExponential(2)}`);
+  }
+  $('test').textContent = 'Concordance avec Python\n' + out.join('\n');
+  window.__test = out;
+}
+
+(async function init() {
+  I = await (await fetch('intrants.json')).json();
+  regler(Object.assign({}, PRESETS.plan45, DEFAUTS));
+  ref = simuler(I, params(lire()));
+  regler(Object.assign({}, PRESETS.transition, DEFAUTS));
+  charts.rnp = creerGraphique('c-rnp', v => nf.format(v));
+  charts.pop = creerGraphique('c-pop', v => f2.format(v));
+  charts.pib = creerGraphique('c-pib', v => f1.format(v));
+  charts.part = creerGraphique('c-part', v => f1.format(v));
+  let enAttente = false;
+  IDS.forEach(k => $(k).addEventListener('input', () => { if (!enAttente) { enAttente = true; setTimeout(() => { enAttente = false; maj(); }, 0); } }));
+  document.querySelectorAll('#presets button').forEach(b => b.addEventListener('click', () => { regler(Object.assign({}, PRESETS[b.dataset.p], DEFAUTS)); maj(); }));
+  $('csv').addEventListener('click', csv);
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { Object.values(charts).forEach(c => c.destroy()); location.reload(); });
+  maj();
+  if (new URLSearchParams(location.search).has('test')) tester();
+})();
+</script>
+</body>
+</html>

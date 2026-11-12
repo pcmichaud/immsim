@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.DS_Store
+.vscode/
+output/
+data/stc/17100005*.csv
