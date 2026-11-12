@@ -2,7 +2,7 @@
 
 Pierre-Carl Michaud, HEC Montréal (Chaire de recherche Jacques-Parizeau en politiques économiques)
 
-**Version 2026** (branche `v2026`). Elle accompagne le rapport *La planification de l'immigration au Québec dans le contexte canadien* (novembre 2026). La version de 2025 (`immsim.py`, rapport *Planifier un atterrissage en douceur*, mai 2025) reste disponible sur la branche `main`.
+**Version 2026** (branche `v2026`). Elle accompagne le rapport *Quelles voies pour l'immigration au Québec ? La planification dans le contexte canadien* (novembre 2026). La version de 2025 (`immsim.py`, rapport *Planifier un atterrissage en douceur*, mai 2025) reste disponible sur la branche `main`.
 
 **Simulateur en ligne :** https://pcmichaud.github.io/immsim/ (dossier `docs/`)
 
