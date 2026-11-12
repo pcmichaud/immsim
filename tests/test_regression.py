@@ -1,4 +1,4 @@
-"""Test de non-régression : reproduit les chiffres du Tableau 3 du rapport « Quelles voies pour l'immigration au Québec ? La planification dans le contexte canadien » (novembre 2026).
+"""Test de non-régression : reproduit les chiffres du Tableau 3 du rapport « Planifier l'immigration au Québec : scénarios et contraintes » (novembre 2026).
 Usage : python tests/test_regression.py"""
 import os
 import sys
