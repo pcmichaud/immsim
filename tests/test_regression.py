@@ -1,4 +1,4 @@
-"""Test de non-régression : reproduit les chiffres du Tableau 3 du rapport « Atterrir en douceur » (novembre 2026).
+"""Test de non-régression : reproduit les chiffres du Tableau 3 du rapport « Réduire l'immigration temporaire au Québec : rythmes, leviers et compromis » (novembre 2026).
 Usage : python tests/test_regression.py"""
 import os
 import sys
