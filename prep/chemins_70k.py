@@ -5,7 +5,7 @@ Admissions de l'étranger maintenues à 20 000 par an (soit 40 % des 50 000 de l
 hausse est comblée par des RNP déjà au Québec, sans cannibaliser les admissions de l'étranger.
 (Version précédente, fin à 40 000 avec 16 000 de l'étranger : chemins_70k_v1_fin40000.py.)
 CAQ : plan 2026-2029 prolongé, 45 000 par an, dont 65 % issues de personnes déjà au Québec (15 750 de l'étranger).
-PQ : 35 000 par an dès 2027 ; hors RNP, seulement la réunification familiale et les réfugiés (12 000 de l'étranger).
+Cible du gouvernement : 35 000 par an dès 2027 ; hors RNP, seulement la réunification familiale et les réfugiés (12 000 de l'étranger).
 """
 PROPOSE = {2027 + k: 70000 - 2500 * k for k in range(9)}          # 70 000 (2027) ... 50 000 (2035)
 ETR_PROPOSE = 20000

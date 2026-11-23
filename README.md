@@ -61,13 +61,14 @@ L'annexe A du rapport présente le modèle en détail. L'annexe E décrit l'indi
 |---|---|
 | `immsim2026.py` | le modèle (classe `immsim2026`) |
 | `data/tx_isq_2026.xlsx` | intrants : taux de l'ISQ 2026, risques de la BDIM, stocks de départ |
-| `data/stc/`, `data/isq2026/` | données publiques de Statistique Canada et de l'ISQ |
+| `data/stc/`, `data/isq2026/` | données publiques de Statistique Canada (dont 17-10-0121-01, effectif des RNP par type) et de l'ISQ |
 | `prep/prep_intrants_2026.py` | construit `tx_isq_2026.xlsx` (exige aussi `data/stc/17100005.csv`, à télécharger de Statistique Canada, non versé à cause de sa taille) |
 | `prep/chemins_70k.py` | trajectoires d'admissions des trois scénarios du rapport |
 | `prep/scenarios_70k.py`, `prep/figures_70k.py` | scénarios et figures du rapport |
 | `prep/scenarios_grille_plan.py`, `prep/figure_grille_plan.py` | grille des politiques québécoise et fédérale (Figure 5) |
 | `prep/bilan_cible.py`, `prep/marge_quebec.py` | bilan d'une cible de 250 000 RNP et modèle simplifié à trois groupes |
 | `prep/validation_isq2026.py` | validation sur les projections de l'ISQ |
+| `prep/figures_descriptives.py` | figures descriptives du rapport : immigration permanente dans l'OCDE (Figure 2), effectif des RNP (Figure 3), population observée et prévue par l'ISQ en 2019, marge du Québec (annexe C) |
 | `prep/export_web.py` | exporte les intrants du simulateur (`docs/intrants.json`) et des résultats de référence |
 | `docs/` | simulateur web : `index.html` et `immsim.js` (transposition JavaScript du modèle) |
 | `tests/` | test de non-régression (Tableau 3 du rapport) et résultats de référence du simulateur |
@@ -78,7 +79,9 @@ L'annexe A du rapport présente le modèle en détail. L'annexe E décrit l'indi
 pip install -r requirements.txt
 python tests/test_regression.py        # Tableau 3 du rapport
 python prep/scenarios_70k.py           # trajectoires -> output/
-python prep/figures_70k.py             # figures -> output/figures/
+python prep/figures_70k.py             # figures des scénarios -> output/figures/
+python prep/scenarios_grille_plan.py && python prep/figure_grille_plan.py   # Figure 5
+python prep/figures_descriptives.py    # figures descriptives -> output/figures/
 ```
 
 Le simulateur web reproduit les résultats de Python à 10⁻⁶ près ; ouvrir `docs/index.html?test=1` depuis un serveur local (`python -m http.server`) pour afficher la vérification.
