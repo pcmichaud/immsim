@@ -135,7 +135,7 @@ a { color: var(--accent); }
     </div>
     <details><summary>Voir les données pour quelques années</summary><div id="table"></div></details>
     <div class="notes">
-      <p><strong>À lire avant d'interpréter.</strong> Il s'agit de projections mécaniques et non de prévisions : les comportements observés en 2025 (départs du Québec, passages à la résidence permanente) sont tenus constants, et les flux fédéraux sont fixés par les leviers. Les entrées de résidents temporaires sont constantes après 2026. Les profils d'intégration des étudiants et des demandeurs d'asile sont des hypothèses. L'effet sur le PIB par habitant ne tient compte que de la structure par âge et du rattrapage des immigrants ; la productivité des natifs est tenue constante. La méthode est décrite à l'annexe A du rapport.</p>
+      <p><strong>À lire avant d'interpréter.</strong> Il s'agit de projections mécaniques et non de prévisions : les comportements observés en 2025 (départs du Québec, passages à la résidence permanente) sont tenus constants, et les flux fédéraux sont fixés par les leviers. Les entrées de résidents temporaires sont constantes après 2026. Les profils d'intégration des étudiants et des demandeurs d'asile sont des hypothèses. L'effet sur le PIB par habitant ne tient compte que de la structure par âge et du rattrapage des immigrants ; la productivité des natifs est tenue constante. Les axes des graphiques sont fixes pour que les ampleurs restent comparables d'un scénario à l'autre ; avec des choix extrêmes, une courbe peut sortir du cadre. La méthode est décrite à l'annexe A du rapport.</p>
       <p>Pierre-Carl Michaud, HEC Montréal. Sources : Statistique Canada, Institut de la statistique du Québec, IRCC, MIFI ; calculs de l'auteur.</p>
     </div>
     <div id="test"></div>
@@ -155,6 +155,7 @@ const DEFAUTS = { q: -10, pmi: 0, asile: 15000, kappa: 1 };
 const nf = new Intl.NumberFormat('fr-CA', { maximumFractionDigits: 0 });
 const f1 = new Intl.NumberFormat('fr-CA', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const f2 = new Intl.NumberFormat('fr-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fAxe = new Intl.NumberFormat('fr-CA', { maximumFractionDigits: 1 });
 const $ = id => document.getElementById(id);
 const IDS = ['rp0', 'rp1', 'an1', 'etr', 'q', 'pmi', 'asile', 'kappa', 'vitesse'];
 const FMT = {
@@ -179,7 +180,8 @@ function serie(label, data, couleur, pointille, largeur) {
            borderDash: pointille ? [6, 4] : [], pointRadius: 0, pointHoverRadius: 4, tension: 0, spanGaps: true };
 }
 
-function creerGraphique(id, fmt) {
+// Axes fixes : les ampleurs restent comparables d'un scénario à l'autre ; les choix extrêmes peuvent sortir du cadre.
+function creerGraphique(id, fmt, ymin, ymax, pas) {
   const grid = css('--grid'), muted = css('--muted');
   return new Chart($(id), {
     type: 'line', data: { labels: [], datasets: [] },
@@ -190,7 +192,7 @@ function creerGraphique(id, fmt) {
         tooltip: { callbacks: { label: c => ` ${c.dataset.label} : ${c.parsed.y == null ? '—' : fmt(c.parsed.y)}` } } },
       scales: {
         x: { ticks: { color: muted, maxTicksLimit: 8, autoSkip: true }, grid: { display: false }, border: { color: grid } },
-        y: { ticks: { color: muted, callback: v => fmt(v) }, grid: { color: grid }, border: { display: false } },
+        y: { min: ymin, max: ymax, ticks: { color: muted, stepSize: pas, callback: v => fAxe.format(v) }, grid: { color: grid }, border: { display: false } },
       },
     },
   });
@@ -267,10 +269,10 @@ async function tester() {
   regler(Object.assign({}, PRESETS.plan45, DEFAUTS));
   ref = simuler(I, params(lire()));
   regler(Object.assign({}, PRESETS.transition, DEFAUTS));
-  charts.rnp = creerGraphique('c-rnp', v => nf.format(v));
-  charts.pop = creerGraphique('c-pop', v => f2.format(v));
-  charts.pib = creerGraphique('c-pib', v => f1.format(v));
-  charts.part = creerGraphique('c-part', v => f1.format(v));
+  charts.rnp = creerGraphique('c-rnp', v => nf.format(v), 100, 700, 100);
+  charts.pop = creerGraphique('c-pop', v => f2.format(v), 8.6, 10.2, 0.2);
+  charts.pib = creerGraphique('c-pib', v => f1.format(v), -6, 1, 1);
+  charts.part = creerGraphique('c-part', v => f1.format(v), 16, 22, 1);
   let enAttente = false;
   IDS.forEach(k => $(k).addEventListener('input', () => { if (!enAttente) { enAttente = true; setTimeout(() => { enAttente = false; maj(); }, 0); } }));
   document.querySelectorAll('#presets button').forEach(b => b.addEventListener('click', () => { regler(Object.assign({}, PRESETS[b.dataset.p], DEFAUTS)); maj(); }));
